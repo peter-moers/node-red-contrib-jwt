@@ -1,5 +1,11 @@
+
+
 # node-red-contrib-jwt
 Node-red node for sign and validate JWT tokens.
+
+## Installation from github
+Install the node: 
+npm install --save https://github.com/peter-moers/node-red-contrib-jwt/tarball/master
 
 ## Functions
 * Sign msg.payload, msg.topic or msg.token using HS\* or RS\* algorithms.
