@@ -36,18 +36,32 @@ module.exports = function (RED) {
                         node.alg === 'ES512') {
                     node.secret = process.env.NODE_RED_NODE_JWT_PRIVATE_KEY || fs.readFileSync(node.key);
                 } else {
-                    node.secret = process.env.NODE_RED_NODE_JWT_SECRET || node.secret;
+                    node.secret = msg.secret || process.env.NODE_RED_NODE_JWT_SECRET || node.secret;
                 }
-                jwt.sign(msg[node.signvar],
+                
+                if(node.exp) {
+                    jwt.sign(msg[node.signvar],
+                            node.secret,
+                            {algorithm: node.alg, expiresIn: node.exp, keyid: node.jwkkid, header:{"typ":"JWT"} }, function (err, token) {
+                        if (err) {
+                            node.error(err);
+                        } else {
+                            msg[node.storetoken] = token;
+                            node.send(msg);
+                        }
+                    });
+                } else {
+                    jwt.sign(msg[node.signvar],
                         node.secret,
-                        {algorithm: node.alg, expiresIn: node.exp, keyid: node.jwkkid}, function (err, token) {
+                        {algorithm: node.alg, header:{"typ":"JWT"} }, function (err, token) {
                     if (err) {
                         node.error(err);
                     } else {
                         msg[node.storetoken] = token;
                         node.send(msg);
                     }
-                });
+                });   
+                }
             } catch (err) {
                 node.error(err.message);
             }
@@ -115,7 +129,7 @@ module.exports = function (RED) {
                 if (contains(node.alg, 'RS256') || contains(node.alg, 'RS384') || contains(node.alg, 'RS512') || contains(node.alg, 'ES512') || contains(node.alg, 'ES384') || contains(node.alg, 'ES256')) {
                     node.secret = process.env.NODE_RED_NODE_JWT_PUBLIC_KEY || fs.readFileSync(node.key);
                 } else {
-                    node.secret = process.env.NODE_RED_NODE_JWT_SECRET || node.secret;
+                    node.secret =  msg.secret || process.env.NODE_RED_NODE_JWT_SECRET || node.secret;
                 }
             }
 
@@ -162,5 +176,3 @@ module.exports = function (RED) {
         return json.header;
     }
 };
-
-
